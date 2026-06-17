@@ -1,0 +1,81 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  ghToken   String?
+  createdAt DateTime @default(now())
+}
+
+model Repository {
+  id           String        @id @default(cuid())
+  githubId     Int           @unique
+  fullName     String
+  owner        String
+  isActive     Boolean       @default(true)
+  pullRequests PullRequest[]
+  createdAt    DateTime      @default(now())
+}
+
+model PullRequest {
+  id           String        @id @default(cuid())
+  githubId     Int           @unique
+  prNumber     Int
+  title        String
+  state        String        // open, closed, merged
+  status       String        // PASS, REVIEW_REQUIRED, BLOCKED
+  repositoryId String
+  repository   Repository    @relation(fields: [repositoryId], references: [id])
+  scans        ScanResult[]
+  createdAt    DateTime      @default(now())
+}
+
+model ScanResult {
+  id            String      @id @default(cuid())
+  pullRequestId String
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id])
+  findings      Finding[]
+  riskScore     Int
+  policyDecision String     // PASS, REVIEW, BLOCK
+  createdAt     DateTime    @default(now())
+}
+
+model Finding {
+  id           String     @id @default(cuid())
+  scanResultId String
+  scanResult   ScanResult @relation(fields: [scanResultId], references: [id])
+  type         String     // Secret, Vulnerability, Misconfig
+  severity     String     // CRITICAL, HIGH, MEDIUM, LOW
+  fileLocation String
+  codeSnippet  String?
+  explanation  String?
+  remediation  String?
+  createdAt    DateTime   @default(now())
+}
+
+model Policy {
+  id        String   @id @default(cuid())
+  name      String
+  rules     Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  decision  String?
+  metadata  Json?
+  timestamp DateTime @default(now())
+}
