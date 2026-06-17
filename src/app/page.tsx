@@ -17,7 +17,6 @@ export default function LandingPage() {
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
-          <Link href="#how-it-works" className="hover:text-primary transition-colors">How it Works</Link>
           <Link href="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
         </div>
         <div className="flex items-center gap-4">
@@ -57,9 +56,11 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="ghost" className="h-14 px-8 text-lg border border-transparent hover:border-white/10">
-              View Documentation
-            </Button>
+            <Link href="https://github.com/GauravKarakoti/SecureFlow/tree/main/docs" target="_blank" rel="noopener noreferrer">
+              <Button size="lg" variant="ghost" className="h-14 px-8 text-lg border border-transparent hover:border-white/10">
+                View Documentation
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -70,7 +71,7 @@ export default function LandingPage() {
               <div className="w-3 h-3 rounded-full bg-red-500/50" />
               <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
               <div className="w-3 h-3 rounded-full bg-green-500/50" />
-              <div className="ml-4 text-xs font-mono text-muted-foreground">secureflow.io/dashboard/acme-corp</div>
+              <div className="ml-4 text-xs font-mono text-muted-foreground">secureflow/dashboard/acme-corp</div>
             </div>
             <div className="relative aspect-video">
               <Image 
@@ -148,12 +149,11 @@ export default function LandingPage() {
             <span className="font-headline font-bold text-lg tracking-tight">SecureFlow</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            © 2024 SecureFlow Inc. All rights reserved.
+            © {new Date().getFullYear()} SecureFlow Inc. All rights reserved.
           </div>
           <div className="flex items-center gap-6">
-            <Link href="#" className="text-muted-foreground hover:text-white transition-colors">Twitter</Link>
-            <Link href="#" className="text-muted-foreground hover:text-white transition-colors">GitHub</Link>
-            <Link href="#" className="text-muted-foreground hover:text-white transition-colors">Status</Link>
+            <Link href="https://x.com/GauravKara_Koti" className="text-muted-foreground hover:text-white transition-colors">Twitter</Link>
+            <Link href="https://github.com/GauravKarakoti/SecureFlow" className="text-muted-foreground hover:text-white transition-colors">GitHub</Link>
           </div>
         </div>
       </footer>
