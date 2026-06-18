@@ -24,7 +24,7 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-4">
           <LoginButton />
-          <Link href="/dashboard">
+          <Link href={process.env.GITHUB_APP_URL!}>
             <Button className="bg-primary text-background hover:bg-primary/90 glow-primary">
               <Github className="w-4 h-4 mr-2" />
               Install on GitHub
