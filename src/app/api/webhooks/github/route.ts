@@ -108,13 +108,32 @@ export async function POST(req: NextRequest) {
 
       console.log(`Processing PR #${pull_request.number} on ${repository.full_name}`);
 
-      // Fetch the repo early to associate the correct userId with the incoming PR audit logs
       const dbRepo = await prisma.repository.findUnique({
         where: { githubId: BigInt(repository.id) }
       });
       const userId = dbRepo?.userId;
 
-      // --- EVENT 2: Scan Triggered ---
+      // --- NEW: Fetch User's Active Policies ---
+      let activePolicies: any[] = [];
+      if (userId) {
+        // Fetch all templates and the user's specific toggles
+        const templates = await prisma.policyTemplate.findMany();
+        const userToggles = await prisma.userPolicyToggle.findMany({
+          where: { userId }
+        });
+        
+        // Map toggles to efficiently check active status
+        const toggleMap = new Map(userToggles.map(t => [t.policyTemplateId, t.isActive]));
+        
+        // Filter to only include active templates
+        activePolicies = templates.filter(template => {
+          return toggleMap.has(template.id) 
+            ? toggleMap.get(template.id) 
+            : template.isDefault;
+        });
+      }
+      // ------------------------------------------
+
       await prisma.auditLog.create({
         data: {
           userId: userId,
@@ -123,7 +142,6 @@ export async function POST(req: NextRequest) {
           metadata: { action: action, head_sha: pull_request.head.sha }
         }
       });
-      // -------------------------------
 
       const appId = process.env.GITHUB_APP_ID!;
       const privateKey = process.env.GITHUB_PRIVATE_KEY!.replace(/\\n/g, '\n'); 
@@ -137,7 +155,6 @@ export async function POST(req: NextRequest) {
         pull_number: pull_request.number,
       });
 
-      // UPDATE: Filter out files that were removed
       const fileChanges = pullRequestFiles
         .filter((file: any) => file.patch && file.status !== 'removed') 
         .map((file: any) => ({
@@ -145,9 +162,6 @@ export async function POST(req: NextRequest) {
           patch: file.patch
         }));
 
-      // ==========================================
-      // NEW: Post the initial "Waiting" comment
-      // ==========================================
       const pendingComment = await octokit.rest.issues.createComment({
         owner: repository.owner.login,
         repo: repository.name,
@@ -155,8 +169,10 @@ export async function POST(req: NextRequest) {
         body: `### ⏳ SecureFlow AI Security Scan\n\nEvaluating **${fileChanges.length}** changed files. Please wait while the AI analyzes the code for potential vulnerabilities...`,
       });
 
-      // Security Scanning
-      const findings = await scanner.scanPullRequest(fileChanges);
+      // --- UPDATE: Pass the active policies to the scanner ---
+      const findings = await scanner.scanPullRequest(fileChanges, activePolicies);
+      // -------------------------------------------------------
+      
       const enrichedFindings = await Promise.all(findings.map(async (finding: any) => {
         const aiResponse = await developerReceivesAISecurityExplanations({
           findingType: finding.type,

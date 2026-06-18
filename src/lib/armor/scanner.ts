@@ -68,14 +68,12 @@ function extractAddedLines(patch: string): string {
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class ArmorIQScanner {
-  async scanPullRequest(files: FileChange[]): Promise<ScanFinding[]> {
+  async scanPullRequest(files: FileChange[], activePolicies: any[] = []): Promise<ScanFinding[]> {
     let combinedContent = '';
     const scannedFilesList: string[] = [];
     
-    // Total aggregated context character ceiling
     const MAX_COMBINED_LENGTH = 8000; 
 
-    // 1. Collect and format modifications from all valid files
     for (const file of files) {
       if (shouldIgnore(file.filename)) {
         console.log(`🛡️ Skipping ignored file: ${file.filename}`);
@@ -85,33 +83,38 @@ export class ArmorIQScanner {
       const addedLines = extractAddedLines(file.patch || '');
       
       if (!addedLines.trim()) {
-        console.log(`ℹ️ No explicit line changes to scan in file: ${file.filename}`);
         continue;
       }
 
       scannedFilesList.push(file.filename);
-      // Delineate each file with distinct boundary text headers
       combinedContent += `--- START FILE: ${file.filename} ---\n${addedLines}\n--- END FILE: ${file.filename} ---\n\n`;
     }
 
-    // If no manual additions are found across the entire PR, return empty early
     if (!combinedContent.trim()) {
-      console.log(`ℹ️ No code changes detected across any files to process.`);
       return [];
     }
 
-    // Safe truncation fallback for giant aggregated PRs
     if (combinedContent.length > MAX_COMBINED_LENGTH) {
-      console.log(`⚠️ Aggregated PR code changes are very large. Truncating to fit safety window.`);
       combinedContent = combinedContent.substring(0, MAX_COMBINED_LENGTH) + "\n\n...[TRUNCATED FOR SIZE]...";
     }
 
-    // 2. Updated prompt format to explicitly require a valid root object with a "findings" key
+    // --- 1. DYNAMIC POLICY INSTRUCTION GENERATION ---
+    let policyInstructions = `1. Hardcoded secrets (actual active production string values like a valid "sk-proj-..." key or high-entropy credentials).\n2. Contextual leaks (explicitly logging secret variables to the console or exposing them to clients).`;
+
+    if (activePolicies && activePolicies.length > 0) {
+      policyInstructions += `\n\nAdditionally, the user has enabled specific security policies. You MUST ALSO scan for the following:\n`;
+      activePolicies.forEach((policy, index) => {
+        policyInstructions += `${index + 3}. ${policy.name}: ${policy.description}\n`;
+      });
+    } else {
+      policyInstructions += `\n\nCRITICAL: DO NOT focus on or flag general vulnerabilities like SQL injection, XSS, logic flaws, or broad data leaks. ONLY FOCUS ON THE DEFAULT SECRET-RELATED ISSUES ABOVE.`;
+    }
+
+    // --- 2. UPDATED PROMPT ---
     const prompt = `Analyze the following aggregated code changes from a Pull Request for security vulnerabilities.
-Look for:
-1. Hardcoded secrets (actual active production string values like a valid "sk-proj-..." key or high-entropy credentials).
-2. Contextual leaks (explicitly logging variables to the console or exposing them to clients).
-3. Logic flaws.
+Look strictly for the following configured issues:
+
+${policyInstructions}
 
 The changes are organized under individual file demarcation boundaries labeled '--- START FILE: <filename> ---'. 
 CRITICAL: Carefully track which file the code snippet belongs to and report its exact name in the 'fileLocation' field.
