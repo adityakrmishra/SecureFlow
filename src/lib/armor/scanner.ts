@@ -17,27 +17,46 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// 1. Files that should NEVER be scanned by an LLM
-const IGNORED_FILES = [
-  'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
-  '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico',
-  'dist/', 'build/', '.next/', 'public/'
+// Non-executable text, assets, metadata or dependency configurations that shouldn't be audited
+const IGNORED_EXTENSIONS = [
+  '.json', '.lock', '.yaml', '.yml', '.prisma', '.md', '.sql', '.txt', '.csv',
+  '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.pdf', '.zip', '.gz'
+];
+
+const IGNORED_PATHS = [
+  'dist/', 'build/', '.next/', 'public/', 'node_modules/', '.idx/', 'prisma/migrations/'
 ];
 
 function shouldIgnore(filename: string): boolean {
-  return IGNORED_FILES.some(ignored => filename.includes(ignored));
+  const lower = filename.toLowerCase();
+  
+  // 1. Path-level exclusions
+  if (IGNORED_PATHS.some(path => lower.includes(path))) {
+    return true;
+  }
+  
+  // 2. Extension-level exclusions
+  if (IGNORED_EXTENSIONS.some(ext => lower.endsWith(ext))) {
+    return true;
+  }
+  
+  // 3. System configurations and seed layout structures
+  if (lower.includes('.config.') || lower.startsWith('.') || lower.includes('seed.ts')) {
+    return true;
+  }
+
+  return false;
 }
 
-// Helper function to pause execution
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class ArmorIQScanner {
   async scanPullRequest(files: FileChange[]): Promise<ScanFinding[]> {
     const findings: ScanFinding[] = [];
     
-    // 2. Max characters for a patch to prevent 413 Payload Too Large
-    // ~12000 tokens is roughly 48000 characters. We cap at 15000 to be extremely safe.
-    const MAX_PATCH_LENGTH = 15000; 
+    // Capped at 6000 characters (~1,500 tokens) to guarantee the input, 
+    // system instructions, and completion safely slide into Groq's 12,000 TPM limit.
+    const MAX_PATCH_LENGTH = 6000; 
 
     for (const file of files) {
       if (shouldIgnore(file.filename)) {
@@ -72,7 +91,6 @@ Format:
   "codeSnippet": "The specific problematic line(s) of code"
 }]`;
 
-      // 3. Retry Logic & Rate Limit Handling
       let success = false;
       let retries = 3;
 
@@ -105,17 +123,21 @@ CRITICAL RULES:
           findings.push(...fileFindings);
           success = true;
 
-          // Add a baseline delay between successful requests to prevent hitting the TPM limit
+          // Adaptive wait to minimize hitting sliding TPM windows on sequential requests
           await delay(3000); 
 
         } catch (error: any) {
           if (error.status === 429) {
-            console.warn(`⏳ Rate limit reached scanning ${file.filename}. Waiting 15 seconds...`);
-            await delay(15000); // Back off for 15s to allow token bucket to refill
+            // Check for standard API header hints, otherwise apply progressive backoff
+            const retryAfterHeader = error.headers?.get?.('retry-after') || error.headers?.['retry-after'];
+            const waitTime = retryAfterHeader ? parseInt(retryAfterHeader, 10) * 1000 : (4 - retries) * 25000;
+            
+            console.warn(`⏳ Rate limit reached scanning ${file.filename}. Waiting ${waitTime / 1000} seconds...`);
+            await delay(waitTime);
             retries--;
           } else if (error.status === 413) {
             console.error(`❌ File STILL too large even after truncation: ${file.filename}. Skipping.`);
-            break; // Do not retry 413s
+            break; 
           } else {
             console.error(`❌ Failed to scan file ${file.filename}:`, error);
             break;

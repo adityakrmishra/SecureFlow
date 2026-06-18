@@ -101,9 +101,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'New repositories added' });
     }
 
-    // ==========================================
-    // 4. EXISTING: Handle Pull Requests
-    // ==========================================
     if (event === 'pull_request') {
       if (!['opened', 'synchronize', 'reopened'].includes(action)) {
         return NextResponse.json({ message: 'Action not tracked' }, { status: 200 });
@@ -147,6 +144,16 @@ export async function POST(req: NextRequest) {
           filename: file.filename,
           patch: file.patch
         }));
+
+      // ==========================================
+      // NEW: Post the initial "Waiting" comment
+      // ==========================================
+      const pendingComment = await octokit.rest.issues.createComment({
+        owner: repository.owner.login,
+        repo: repository.name,
+        issue_number: pull_request.number,
+        body: `### ⏳ SecureFlow AI Security Scan\n\nEvaluating **${fileChanges.length}** changed files. Please wait while the AI analyzes the code for potential vulnerabilities...`,
+      });
 
       // Security Scanning
       const findings = await scanner.scanPullRequest(fileChanges);
@@ -193,6 +200,9 @@ export async function POST(req: NextRequest) {
         }
       });
 
+      // ==========================================
+      // NEW: Update the initial "Waiting" comment
+      // ==========================================
       if (enrichedFindings.length > 0) {
         let commentBody = `### 🛡️ SecureFlow AI Security Report\n\n`;
         enrichedFindings.forEach((f: any) => {
@@ -201,10 +211,11 @@ export async function POST(req: NextRequest) {
           commentBody += `**Remediation:** ${f.remediation}\n\n---\n`;
         });
 
-        await octokit.rest.issues.createComment({
+        // Update the comment we created earlier
+        await octokit.rest.issues.updateComment({
           owner: repository.owner.login,
           repo: repository.name,
-          issue_number: pull_request.number,
+          comment_id: pendingComment.data.id,
           body: commentBody,
         });
 
@@ -217,7 +228,14 @@ export async function POST(req: NextRequest) {
             metadata: { commentType: 'AI Security Report', findingsReported: enrichedFindings.length }
           }
         });
-        // ----------------------------------
+      } else {
+        // If no findings, update the comment to show success!
+        await octokit.rest.issues.updateComment({
+          owner: repository.owner.login,
+          repo: repository.name,
+          comment_id: pendingComment.data.id,
+          body: `### 🛡️ SecureFlow AI Security Report\n\n✅ Scan completed successfully. No vulnerabilities found in the **${fileChanges.length}** analyzed files.`,
+        });
       }
 
       // Persist PR details to DB
