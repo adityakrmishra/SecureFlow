@@ -65,7 +65,7 @@ model VerificationToken {
 
 model Repository {
   id           String        @id @default(cuid())
-  githubId     Int           @unique
+  githubId     BigInt        @unique  // Changed from Int
   fullName     String
   owner        String
   isActive     Boolean       @default(true)
@@ -80,8 +80,8 @@ model Repository {
 
 model PullRequest {
   id           String        @id @default(cuid())
-  githubId     Int           @unique
-  prNumber     Int
+  githubId     BigInt        @unique  // Changed from Int
+  prNumber     Int                    // Int is fine here since PR numbers are sequential per repo
   title        String
   state        String        // open, closed, merged
   status       String        // PASS, REVIEW_REQUIRED, BLOCKED

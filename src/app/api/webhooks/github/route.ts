@@ -161,14 +161,14 @@ export async function POST(req: NextRequest) {
 
       if (dbRepo) {
         const dbPr = await prisma.pullRequest.upsert({
-          where: { githubId: pull_request.id },
+          where: { githubId: BigInt(pull_request.id) },
           update: {
             title: pull_request.title,
             state: pull_request.state, 
             status: decision,
           },
           create: {
-            githubId: pull_request.id,
+            githubId: BigInt(pull_request.id),
             prNumber: pull_request.number,
             title: pull_request.title,
             state: pull_request.state,
