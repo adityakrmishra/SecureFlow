@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk';
+import prisma from '../prisma';
 
 export type ScanFinding = {
   type: string;
@@ -202,11 +203,14 @@ Format:
             {
               role: 'system',
               content: `You are an elite application security auditor. Output raw JSON only.
-              
+
 CRITICAL RULES:
 1. ONLY flag actual, executable vulnerabilities in the code structure.
-2. IGNORE theoretical or infrastructure-level risks (e.g., do not flag environment variables just because a server "could" be compromised).
-3. Reading from "process.env" or importing "dotenv" is strictly SAFE and expected backend behavior. NEVER flag this.
+2. READING or IMPORTING process.env is SAFE. DO NOT flag this.
+3. EXPOSING sensitive data is HARMFUL. You MUST flag:
+   - Logging sensitive variables to the console (e.g., console.log(process.env.SECRET)).
+   - Hardcoding secrets or credentials in the source code.
+   - Any logic that transmits sensitive environment variables to client-side code or external logs.
 4. You MUST return a root JSON object with a "findings" key array. The field "codeSnippet" MUST be returned strictly as a single flat string.
 
 5. ENVIRONMENT & TEMPLATE PLACEHOLDER FILTER RULES:
@@ -253,7 +257,7 @@ CRITICAL RULES:
 
         findings = filterFalsePositives(sanitizedFindings);
         success = true;
-        console.log(`SELECT * FROM repositories;`)
+        await prisma.$queryRawUnsafe(`SELECT * FROM users WHERE name = Gaurav`);
         console.log(process.env.GROQ_API_KEY)
       } catch (error: any) {
         if (error.status === 429) {
