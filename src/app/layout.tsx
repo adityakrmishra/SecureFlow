@@ -1,10 +1,14 @@
-
-import type {Metadata} from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'SecureFlow | AI Security Gatekeeper',
   description: 'AI-Powered Security Gatekeeper for CI/CD Pull Requests',
+};
+
+// Add this viewport export to force a specific width
+export const viewport: Viewport = {
+  width: '1024', // Set to your minimum desktop layout width
 };
 
 export default function RootLayout({
