@@ -19,6 +19,7 @@ SecureFlow integrates directly with GitHub via a GitHub App and webhooks. Every 
   - [3. GitHub App Setup](#3-github-app-setup)
   - [4. Database Setup](#4-database-setup)
   - [5. Run the App](#5-run-the-app)
+- [Docker Setup](#-docker-setup)
 - [Environment Variables Reference](#-environment-variables-reference)
 - [Available Scripts](#-available-scripts)
 - [Security Policies](#-security-policies)
@@ -230,6 +231,14 @@ Open [http://localhost:9002](http://localhost:9002) in your browser.
 ```bash
 npm run genkit:dev
 ```
+
+---
+
+## 🐳 Docker Setup
+
+1. Copy `.env.example` to `.env` and fill in values (note: `DATABASE_URL` is auto-set by compose)
+2. `docker compose up --build`
+3. App runs at [http://localhost:9002](http://localhost:9002)
 
 ---
 
