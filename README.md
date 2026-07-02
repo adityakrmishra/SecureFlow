@@ -1,41 +1,75 @@
-# SecureFlow 🛡️
 
-> AI-powered GitHub Pull Request security scanner that automatically detects vulnerabilities, hardcoded secrets, and code flaws — before they reach production.
+<div align="center">
 
-SecureFlow integrates directly with GitHub via a GitHub App and webhooks. Every time a Pull Request is opened or updated, it extracts the code diff, runs it through Groq's LLM (Llama 3.1), and generates actionable security findings with AI-written explanations and remediation steps — all visible on a centralized dashboard.
+# 🛡️ SecureFlow
+
+## AI-Powered GitHub Pull Request Security Scanner
+
+[![GitHub stars](https://img.shields.io/github/stars/GauravKarakoti/SecureFlow?style=for-the-badge&color=gold)](https://github.com/GauravKarakoti/SecureFlow/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/GauravKarakoti/SecureFlow?style=for-the-badge&color=blue)](https://github.com/GauravKarakoti/SecureFlow/network)
+[![GitHub issues](https://img.shields.io/github/issues/GauravKarakoti/SecureFlow?style=for-the-badge&color=red)](https://github.com/GauravKarakoti/SecureFlow/issues)
+[![GitHub license](https://img.shields.io/github/license/GauravKarakoti/SecureFlow?style=for-the-badge&color=green)](https://github.com/GauravKarakoti/SecureFlow/blob/main/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](https://github.com/GauravKarakoti/SecureFlow/blob/main/CONTRIBUTING.md)
+[![Made with Next.js](https://img.shields.io/badge/Made%20with-Next.js-000000?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)](https://www.prisma.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+
+> **Automatically detect vulnerabilities, hardcoded secrets, and code flaws before they reach production.**
+
+</div>
 
 ---
 
 ## 📋 Table of Contents
-
-- [Features](#-features)
-- [How It Works](#-how-it-works)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
+<details>
+<summary><b>Click to expand</b></summary>
+- [🌟 Features](#-features)
+- [🧠 How It Works](#-how-it-works)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Getting Started](#-getting-started)
   - [Prerequisites](#prerequisites)
   - [1. Fork & Clone](#1-fork--clone)
   - [2. Environment Variables](#2-environment-variables)
   - [3. GitHub App Setup](#3-github-app-setup)
   - [4. Database Setup](#4-database-setup)
   - [5. Run the App](#5-run-the-app)
-- [Environment Variables Reference](#-environment-variables-reference)
-- [Available Scripts](#-available-scripts)
-- [Security Policies](#-security-policies)
-- [Contributing](#-contributing)
-
+- [🔑 Environment Variables Reference](#-environment-variables-reference)
+- [📝 Available Scripts](#-available-scripts)
+- [🔒 Security Policies](#-security-policies)
+- [📊 Architecture](#-architecture)
+- [🤝 Contributing](#-contributing)
+- [❓ FAQ](#-faq)
+- [📄 License](#-license)
+</details>
 ---
 
-## ✨ Features
+SecureFlow integrates directly with GitHub via a GitHub App and webhooks. Every time a Pull Request is opened or updated, it extracts the code diff, runs it through Groq's LLM (Llama 3.1), and generates actionable security findings with AI-written explanations and remediation steps — all visible on a centralized dashboard.
 
-- **Automated PR Scanning** — Listens to GitHub webhook events and scans every opened or updated Pull Request in real-time
-- **AI-Powered Detection** — Uses Groq's fast LLM inference (Llama 3.1) to detect hardcoded secrets, contextual data leaks (e.g. logging `process.env`), and misconfigurations
-- **Intelligent Remediation** — Generates a precise 2-sentence explanation and a concrete code fix for every finding
-- **Custom Policy Management** — Create, toggle, and manage security policies per user (e.g. block raw SQL, deny public cloud storage, enforce CORS)
-- **Centralized Dashboard** — View repositories, active PRs, scan results, findings, and a full audit log in one place
-- **GitHub PR Comments** — Posts a detailed security report directly on the PR with collapsible remediation blocks
-- **GitHub Check Runs** — Sets a Pass / Review Required / Blocked status on the PR commit
-- **Smart Exclusions** — Ignores non-executable files (`.md`, `.lock`, images) and mock placeholders in seed files and `.env.example`
+### 🤖 AI-Powered Detection
+Uses Groq's Llama 3.1 to detect hardcoded secrets, vulnerabilities, and misconfigurations in your code.
+
+### ⚡ Real-time Scanning
+Automatically scans every opened or updated Pull Request as soon as it's created.
+
+### 🛡️ Smart Remediation
+Generates precise explanations and concrete code fixes for each security finding.
+
+### 📊 Centralized Dashboard
+View all your repositories, PRs, findings, and audit logs in one unified interface.
+
+### 💬 GitHub PR Comments
+Posts detailed security reports directly on your PRs with collapsible remediation blocks.
+
+### ✅ GitHub Check Runs
+Sets Pass/Review Required/Blocked status on PR commits for clear CI/CD integration.
+
+### 🎯 Custom Policies
+Create, toggle, and manage security policies per user or organization.
+
+### 🚫 Smart Exclusions
+Intelligently ignores non-executable files and mock placeholders to reduce noise.
 
 ---
 
@@ -64,25 +98,25 @@ Everything visible on the SecureFlow Dashboard
 ### What Gets Detected
 
 | Category | Examples |
-|---|---|
-| 🔑 Hardcoded Secrets | API keys, passwords, tokens committed in code |
-| 📤 Contextual Leaks | `console.log(process.env)`, logging sensitive objects |
-| ⚙️ Misconfigurations | Wildcard CORS, disabled auth, insecure headers |
-| 🧱 Code Vulnerabilities | SQL injection patterns, unsafe deserialization |
-| ☁️ IaC Issues | Public S3 buckets, root container execution |
+|----------|----------|
+| 🔑 **Hardcoded Secrets** | API keys, passwords, tokens committed in code |
+| 📤 **Contextual Leaks** | `console.log(process.env)`, logging sensitive objects |
+| ⚙️ **Misconfigurations** | Wildcard CORS, disabled auth, insecure headers |
+| 🧱 **Code Vulnerabilities** | SQL injection patterns, unsafe deserialization |
+| ☁️ **IaC Issues** | Public S3 buckets, root container execution |
 
 ---
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|---|---|
-| Framework | [Next.js 15](https://nextjs.org/) — App Router + Turbopack |
-| Database | PostgreSQL + [Prisma ORM](https://www.prisma.io/) |
-| Authentication | [NextAuth.js v5](https://authjs.dev/) with GitHub OAuth |
-| AI / LLM | [Groq SDK](https://groq.com/) (`llama-3.1-8b-instant`) + [Genkit](https://firebase.google.com/docs/genkit) |
-| GitHub Integration | [Octokit](https://github.com/octokit/octokit.js) |
-| UI | [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/) + [Recharts](https://recharts.org/) |
+|-------|------------|
+| **Framework** | [Next.js 15](https://nextjs.org/) - App Router + Turbopack |
+| **Database** | PostgreSQL + [Prisma ORM](https://www.prisma.io/) |
+| **Authentication** | [NextAuth.js v5](https://authjs.dev/) with GitHub OAuth |
+| **AI / LLM** | [Groq SDK](https://groq.com/) (`llama-3.1-8b-instant`) + [Genkit](https://firebase.google.com/docs/genkit) |
+| **GitHub Integration** | [Octokit](https://github.com/octokit/octokit.js) |
+| **UI** | [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/) + [Recharts](https://recharts.org/) |
 
 ---
 
@@ -91,9 +125,9 @@ Everything visible on the SecureFlow Dashboard
 ```
 secureflow/
 ├── prisma/
-│   ├── migrations/         # Database migration history
-│   ├── schema.prisma       # Database schema (User, Repo, PR, Finding, etc.)
-│   └── seed.ts             # Seeds default security policy templates
+│   ├── migrations/              # Database migration history
+│   ├── schema.prisma            # Database schema (User, Repo, PR, Finding, etc.)
+│   └── seed.ts                  # Seeds default security policy templates
 │
 ├── src/
 │   ├── ai/
@@ -102,29 +136,29 @@ secureflow/
 │   │
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── auth/           # NextAuth route handler
+│   │   │   ├── auth/            # NextAuth route handler
 │   │   │   └── webhooks/
 │   │   │       └── github/
-│   │   │           └── route.ts  # ← Main webhook handler (PR scanning logic)
+│   │   │           └── route.ts # Main webhook handler (PR scanning logic)
 │   │   │
 │   │   ├── dashboard/
-│   │   │   ├── audit/          # Audit log page
-│   │   │   ├── findings/       # Security findings page
-│   │   │   ├── policies/       # Policy management page
-│   │   │   └── page.tsx        # Main dashboard overview
+│   │   │   ├── audit/           # Audit log page
+│   │   │   ├── findings/        # Security findings page
+│   │   │   ├── policies/        # Policy management page
+│   │   │   └── page.tsx         # Main dashboard overview
 │   │   │
-│   │   ├── login/              # Login page
-│   │   └── setup/              # GitHub App installation setup page
+│   │   ├── login/               # Login page
+│   │   └── setup/               # GitHub App installation setup page
 │   │
 │   ├── components/
-│   │   ├── ui/                 # Radix UI + shadcn components
-│   │   └── dashboard-nav.tsx   # Sidebar navigation
+│   │   ├── ui/                  # Radix UI + shadcn components
+│   │   └── dashboard-nav.tsx    # Sidebar navigation
 │   │
 │   └── lib/
 │       ├── armor/
-│       │   ├── scanner.ts      # ArmorIQScanner — core LLM scanning engine
-│       │   └── iq.ts           # ArmorIQ policy engine + evaluation logic
-│       └── prisma.ts           # Prisma client singleton
+│       │   ├── scanner.ts       # ArmorIQScanner — core LLM scanning engine
+│       │   └── iq.ts            # ArmorIQ policy engine + evaluation logic
+│       └── prisma.ts            # Prisma client singleton
 ```
 
 ---
@@ -159,7 +193,7 @@ npm install
 cp .env.example .env
 ```
 
-Then fill in your `.env` file. See the [Environment Variables Reference](#-environment-variables-reference) section below for details on each value.
+> ⚠️ **Important**: Fill in your `.env` file. See [Environment Variables Reference](#-environment-variables-reference) for details on each value.
 
 ---
 
@@ -236,7 +270,7 @@ npm run genkit:dev
 ## 🔑 Environment Variables Reference
 
 | Variable | Required | Description |
-|---|---|---|
+|----------|----------|-------------|
 | `DATABASE_URL` | ✅ | PostgreSQL connection string |
 | `GROQ_API_KEY` | ✅ | API key from [console.groq.com](https://console.groq.com) |
 | `GITHUB_APP_ID` | ✅ | Numeric ID of your GitHub App |
@@ -255,7 +289,7 @@ npm run genkit:dev
 ## 📝 Available Scripts
 
 | Script | Description |
-|---|---|
+|--------|-------------|
 | `npm run dev` | Start dev server on port 9002 with Turbopack |
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
@@ -274,7 +308,7 @@ npm run genkit:dev
 SecureFlow ships with pre-built policy templates that are seeded into the database. Users can toggle them on/off from the dashboard.
 
 | Policy | Severity | Default |
-|---|---|---|
+|--------|----------|---------|
 | Enforce Parameterized Queries | HIGH | ✅ On |
 | Prevent PII Logging | CRITICAL | Off |
 | Block Internal Network Requests (SSRF) | HIGH | Off |
@@ -284,6 +318,18 @@ SecureFlow ships with pre-built policy templates that are seeded into the databa
 | Deny Public Cloud Storage | CRITICAL | Off |
 | Prevent Root Execution in Containers | MEDIUM | Off |
 | Enforce Smart Contract Reentrancy Guards | CRITICAL | Off |
+
+---
+
+## 📊 Architecture
+
+The architecture follows a modern Next.js full-stack approach with real-time GitHub integration:
+
+- **Frontend**: Next.js App Router with Tailwind CSS for the dashboard
+- **Backend**: API routes handle authentication, webhooks, and business logic
+- **AI Layer**: Groq SDK processes code diffs through Llama 3.1 model
+- **Database**: PostgreSQL with Prisma ORM for data persistence
+- **GitHub Integration**: Octokit manages webhooks, PR comments, and checks
 
 ---
 
@@ -299,6 +345,7 @@ git checkout -b docs/update-readme    # documentation
 ```
 
 Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
+
 ```bash
 git commit -m "fix: description of what you fixed"
 git commit -m "feat: description of new feature"
@@ -307,6 +354,30 @@ git commit -m "docs: description of documentation change"
 
 ---
 
+## ❓ FAQ
+
+**How does SecureFlow protect my secrets?**  
+SecureFlow uses AI to detect hardcoded secrets and sensitive data in your code. It's designed to catch API keys, passwords, tokens, and other credentials that might accidentally be committed to your repository.
+
+**Can I customize the scanning rules?**  
+Yes! You can create, toggle, and manage custom policies through the dashboard. This allows you to enforce organization-specific security rules.
+
+**Is my data sent to external services?**  
+Your code diffs are sent to Groq's LLM service for analysis. We do not store your code or share it with third parties. The service is compliant with data protection standards.
+
+**How much does it cost to use SecureFlow?**  
+SecureFlow is open-source and free to self-host. You'll need a Groq API key (free tier available) and your own PostgreSQL database.
+
+---
+
+
+
 <div align="center">
-  Built with ❤️ to make every Pull Request safer.
+
+**Built with ❤️ to make every Pull Request safer.**
+
+**⭐ Star us on GitHub — it helps!**
+
+[Report Bug](https://github.com/GauravKarakoti/SecureFlow/issues) · [Request Feature](https://github.com/GauravKarakoti/SecureFlow/issues) · [View Demo](https://secure-flow-six.vercel.app/)
+
 </div>
