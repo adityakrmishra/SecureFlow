@@ -1,5 +1,6 @@
 import { ArmorIQClient, IntentToken } from '@armoriq/sdk';
 import { ScanFinding } from './scanner';
+import prisma from '@/lib/prisma';
 
 export type PolicyResult = 'PASS' | 'REVIEW REQUIRED' | 'BLOCKED';
 
@@ -16,9 +17,15 @@ export class ArmorIQPolicyEngine {
     return 'PASS';
   }
 
-  getRiskTrend(): number {
-    return Math.random() * 100;
-  }
+  async getRiskTrend(): Promise<number> {
+  const result = await prisma.scanResult.aggregate({
+    _avg: {
+      riskScore: true,
+    },
+  });
+
+  return result._avg.riskScore ?? 0;
+}
 }
 
 export const iq = new ArmorIQPolicyEngine();
