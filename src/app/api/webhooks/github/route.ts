@@ -214,12 +214,15 @@ export async function POST(req: NextRequest) {
 
       let pullRequestFiles;
       try {
-        const { data } = await octokit.rest.pulls.listFiles({
-          owner: repository.owner.login,
-          repo: repository.name,
-          pull_number: pull_request.number,
-        });
-        pullRequestFiles = data;
+        pullRequestFiles = await octokit.paginate(
+          octokit.rest.pulls.listFiles,
+          {
+            owner: repository.owner.login,
+            repo: repository.name,
+            pull_number: pull_request.number,
+            per_page: 100,
+          }
+        );
       } catch (error: any) {
         if (error.status === 403 || error.status === 429 || (error.message && error.message.toLowerCase().includes('rate limit'))) {
           console.error('GitHub API rate limit exceeded while fetching PR files:', error);
