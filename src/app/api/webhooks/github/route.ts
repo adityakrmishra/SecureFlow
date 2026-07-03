@@ -32,8 +32,8 @@ async function verifyGitHubWebhook(req: NextRequest): Promise<any> {
     throw new Error('Missing or invalid x-hub-signature-256 header');
   }
 
-  const bodyBuffer = Buffer.from(await req.arrayBuffer());
-  const digest = createHmac('sha256', webhookSecret).update(bodyBuffer).digest('hex');
+  const payloadText = await req.text();
+  const digest = createHmac('sha256', webhookSecret).update(payloadText).digest('hex');
 
   const sigBuf = Buffer.from(signatureHex, 'hex');
   const digBuf = Buffer.from(digest, 'hex');
@@ -44,7 +44,7 @@ async function verifyGitHubWebhook(req: NextRequest): Promise<any> {
     throw err;
   }
 
-  return await req.json();
+  return JSON.parse(payloadText);
 }
 
 export async function POST(req: NextRequest) {
