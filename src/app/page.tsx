@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, Lock, Github, ArrowRight, CheckCircle, Search, Cpu, ChevronDown, GitPullRequest, ScanSearch, GitMerge } from 'lucide-react';
 import Image from 'next/image';
 import { LoginButton } from '@/components/ui/login-button';
-
+import { ThemeToggle } from '@/components/theme-toggle';
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -22,7 +22,11 @@ export default function LandingPage() {
           </div>
           <span className="font-headline font-bold text-xl tracking-tight">SecureFlow</span>
         </div>
+
         <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+          </div>
           <LoginButton />
           <Link href={process.env.GITHUB_APP_URL!}>
             <Button className="bg-primary text-background hover:bg-primary/90 glow-primary">
@@ -51,17 +55,7 @@ export default function LandingPage() {
             SecureFlow scans every Pull Request for secrets, vulnerabilities, and risky code patterns before they ever reach your production branch.
           </p>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 w-full sm:w-auto">
-            <Link href="/dashboard">
-
-              <Button size="lg" className="h-14 w-full sm:w-auto px-8 text-base sm:text-lg bg-primary text-background hover:bg-primary/90 hover:scale-105 transition-all duration-300 glow-primary font-semibold">
-                Get Started for Free
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
             <Link href="https://github.com/GauravKarakoti/SecureFlow/tree/main/docs" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="ghost" className="h-14 w-full sm:w-auto px-8 text-base sm:text-lg border border-transparent hover:border-primary/30 hover:bg-primary/5 hover:scale-105 transition-all duration-300">
-                View Documentation
-
               <Button
                size="lg"
                className="h-14 px-8 text-lg bg-primary text-background hover:bg-primary/90 hover:scale-105 transition-all duration-300 glow-primary font-semibold"
@@ -148,7 +142,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={<Search className="text-primary w-6 h-6" />}
-              title="ArmorIQ Scanner"
+              title="Scanner"
               description="Deep-context scanning for API keys, AWS credentials, and thousands of known vulnerability signatures."
             />
             <FeatureCard 
@@ -158,7 +152,7 @@ export default function LandingPage() {
             />
             <FeatureCard 
               icon={<Shield className="text-primary w-6 h-6" />}
-              title="ArmorIQ Policies"
+              title="Policies"
               description="Define custom merge gates based on severity and finding type. Automate security decisions at scale."
             />
           </div>

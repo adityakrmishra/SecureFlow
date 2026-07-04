@@ -2,15 +2,20 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
+// BigInt serialization fix: standard JSON.stringify() does not support BigInt values.
+// Patching BigInt.prototype.toJSON allows objects with BigInt fields (such as Repository/PullRequest githubId)
+// to be serialized safely in API responses.
 declare global {
   interface BigInt {
     toJSON(): string;
   }
 }
 
-BigInt.prototype.toJSON = function () {
-  return this.toString();
-};
+if (!BigInt.prototype.toJSON) {
+  BigInt.prototype.toJSON = function () {
+    return this.toString();
+  };
+}
 
 const prismaClientSingleton = () => {
   // 1. Initialize a connection pool using the standard pg driver
