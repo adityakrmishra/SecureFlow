@@ -15,7 +15,7 @@ export interface FileChange {
 }
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY || 'dummy-key-for-build',
 });
 
 // Non-executable text, assets, metadata or dependency configurations that shouldn't be audited
