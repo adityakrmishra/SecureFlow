@@ -292,8 +292,9 @@ ${chunks[i]}
           `${file.filename}${partSuffix}`
         );
       }
+    }
 
-  async function processBatch(batchContent: string, batchFiles: string[]): Promise<ScanFinding[]> {
+    async function processBatch(batchContent: string, batchFiles: string[]): Promise<ScanFinding[]> {
       if (!batchContent.trim()) return [];
 
       const prompt = `Analyze the following aggregated code changes from a Pull Request for security vulnerabilities.
