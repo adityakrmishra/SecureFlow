@@ -60,9 +60,9 @@ export function extractAddedLines(patch: string): string {
   
   const processedLines: string[] = [];
   for (const line of patch.split('\n')) {
-    // Preserve git patch headers
+    // Explicitly skip git patch headers and metadata
     if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) {
-      processedLines.push(line);
+      continue; 
     } 
     // Tag newly added code
     else if (line.startsWith('+')) {
@@ -72,9 +72,7 @@ export function extractAddedLines(patch: string): string {
     else if (line.startsWith(' ')) {
       processedLines.push(line);
     }
-    // Deleted lines (starting with '-') and other metadata are implicitly dropped
   }
-  
   return processedLines.join('\n');
 }
 
@@ -242,7 +240,8 @@ CRITICAL RULES:
 2. Assigning process.env to a variable is safe. HOWEVER, explicitly leaking process.env via console.log() or returning it to the client is a CRITICAL VULNERABILITY. You MUST flag any instance of console.log(process.env...).
 3. SELF-REFERENTIAL TRAP: You are scanning a security tool. Do NOT flag string literals or text descriptions of security policies (e.g., text inside seed files) as vulnerabilities.
 4. JSON ESCAPING (CRITICAL): You MUST properly escape ALL double quotes (\\") and newlines (\\n) inside the "codeSnippet" and "description" fields. NEVER use unescaped double quotes, and NEVER try to use JavaScript string concatenation (+) inside the JSON structure.
-5. You MUST return a root JSON object with a "findings" key array. The "reasoning" key must come first in each object.` 
+5. You MUST return a root JSON object with a "findings" key array. The "reasoning" key must come first in each object.
+6. The provided code contains both new changes and surrounding context. Focus your security analysis EXCLUSIVELY on lines starting with the [ADDED] tag. All other lines are provided strictly as read-only structural context to help you understand the scope, and should not be flagged for vulnerabilities.` 
               },
               { role: 'user', content: prompt }
             ],
