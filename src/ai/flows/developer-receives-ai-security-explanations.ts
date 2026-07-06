@@ -15,7 +15,7 @@ export type AISecurityExplanationInput = z.infer<typeof AISecurityExplanationInp
 
 const AISecurityExplanationOutputSchema = z.object({
   explanation: z.string(),
-  remediationSuggestions: z.union([z.string(), z.array(z.string())]).transform((val) => Array.isArray(val) ? val.join('\n') : val),
+  remediationSuggestions: z.any().transform((val) => typeof val === 'string' ? val : JSON.stringify(val)),
 });
 export type AISecurityExplanationOutput = z.infer<typeof AISecurityExplanationOutputSchema>;
 
