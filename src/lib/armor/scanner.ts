@@ -55,15 +55,27 @@ function shouldIgnore(filename: string): boolean {
  * Extracts only newly added or modified lines from a unified diff patch.
  * This filters out context lines, metadata headers, and deleted lines.
  */
-function extractAddedLines(patch: string): string {
+export function extractAddedLines(patch: string): string {
   if (!patch) return '';
-  return patch
-    .split('\n')
-    // Keep lines starting with '+' but exclude the '+++' file target header line
-    .filter(line => line.startsWith('+') && !line.startsWith('+++'))
-    // Strip the leading '+' prefix so it passes valid syntax to the LLM
-    .map(line => line.slice(1))
-    .join('\n');
+  
+  const processedLines: string[] = [];
+  for (const line of patch.split('\n')) {
+    // Preserve git patch headers
+    if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) {
+      processedLines.push(line);
+    } 
+    // Tag newly added code
+    else if (line.startsWith('+')) {
+      processedLines.push(`[ADDED] ${line}`);
+    } 
+    // Preserve surrounding context (lines starting with a space)
+    else if (line.startsWith(' ')) {
+      processedLines.push(line);
+    }
+    // Deleted lines (starting with '-') and other metadata are implicitly dropped
+  }
+  
+  return processedLines.join('\n');
 }
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
