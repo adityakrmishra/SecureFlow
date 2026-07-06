@@ -66,6 +66,27 @@ function extractAddedLines(patch: string): string {
     .join('\n');
 }
 
+/**
+ * Split oversized file contents into newline-aware chunks.
+ */
+function splitIntoChunks(text: string, maxChunkSize: number): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+  while (start < text.length) {
+    let end = Math.min(start + maxChunkSize, text.length);
+    // Prefer splitting at the last newline instead of the middle of a line
+    if (end < text.length) {
+      const lastNewline = text.lastIndexOf("\n", end);
+      if (lastNewline > start) {
+        end = lastNewline;
+      }
+    }
+    chunks.push(text.slice(start, end));
+    start = end;
+  }
+  return chunks;
+}
+
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 function filterFalsePositives(findings: ScanFinding[]): ScanFinding[] {
@@ -116,6 +137,7 @@ export class ArmorIQScanner {
     let currentBatch = '';
     let currentBatchFiles: string[] = [];
     const allFindings: ScanFinding[] = [];
+    const ABSOLUTE_MAX_FILE_SIZE = 50000;
     const MAX_COMBINED_LENGTH = 8000; 
 
     let policyInstructions = `CORE RULES:\n1. Hardcoded secrets (actual active production string values).\n2. Contextual leaks (explicitly logging secret variables to the console or exposing them to clients).`;
@@ -145,6 +167,13 @@ export class ArmorIQScanner {
         continue;
       }
 
+      if (addedLines.length > ABSOLUTE_MAX_FILE_SIZE) {
+        console.warn(
+          `Skipping ${file.filename}: diff exceeds ${ABSOLUTE_MAX_FILE_SIZE} characters.`
+        );
+        continue;
+      }
+
       let fileContext = "";
       const lowerFile = file.filename.toLowerCase();
       
@@ -157,29 +186,44 @@ export class ArmorIQScanner {
       } else if (lowerFile.endsWith('.sol') || lowerFile.endsWith('.leo') || lowerFile.endsWith('.rs')) {
         fileContext = "THIS IS A SMART CONTRACT OR PRIVACY-PRESERVING ZERO-KNOWLEDGE CIRCUIT. Analyze it with decentralized architecture patterns in mind and reduce false positives for decentralized logic.";
       }
+      const wrapperOverhead =
+        `<file name="${file.filename}" context_warning="${fileContext}"></file>\n\n`.length;
+      const maxContentSize = MAX_COMBINED_LENGTH - wrapperOverhead;
+      const chunks =
+        addedLines.length > maxContentSize
+          ? splitIntoChunks(addedLines, maxContentSize)
+          : [addedLines];
 
-      const fileContentChunk = `<file name="${file.filename}" context_warning="${fileContext}">\n${addedLines}\n</file>\n\n`;
+      for (let i = 0; i < chunks.length; i++) {
 
-      if (currentBatch.length + fileContentChunk.length > MAX_COMBINED_LENGTH && currentBatch.length > 0) {
-        const batchFindings = await processBatch(currentBatch, currentBatchFiles);
-        allFindings.push(...batchFindings);
-        
-        currentBatch = '';
-        currentBatchFiles = [];
+        const partSuffix =
+          chunks.length > 1
+          ? ` (part ${i + 1}/${chunks.length})`
+          : "";
+        const fileContentChunk =
+        `<file name="${file.filename}${partSuffix}" context_warning="${fileContext}">
+        ${chunks[i]}
+        </file>
+
+        `;
+        if (
+          currentBatch.length + fileContentChunk.length > MAX_COMBINED_LENGTH &&
+          currentBatch.length > 0
+        ) {
+          const batchFindings = await processBatch(currentBatch, currentBatchFiles);
+          allFindings.push(...batchFindings);
+
+          currentBatch = "";
+          currentBatchFiles = [];
+        }
+        currentBatch += fileContentChunk;
+        currentBatchFiles.push(
+          `${file.filename}${partSuffix}`
+        );
       }
-
-      currentBatch += fileContentChunk;
-      currentBatchFiles.push(file.filename);
     }
 
-    if (currentBatch.length > 0) {
-      const batchFindings = await processBatch(currentBatch, currentBatchFiles);
-      allFindings.push(...batchFindings);
-    }
-
-    return allFindings;
-
-    async function processBatch(batchContent: string, batchFiles: string[]): Promise<ScanFinding[]> {
+       async function processBatch(batchContent: string, batchFiles: string[]): Promise<ScanFinding[]> {
       if (!batchContent.trim()) return [];
 
       const prompt = `Analyze the following aggregated code changes from a Pull Request for security vulnerabilities.
@@ -287,12 +331,19 @@ CRITICAL RULES:
 
       return findings;
     }
+
+    if (currentBatch.length > 0) {
+      const batchFindings = await processBatch(currentBatch, currentBatchFiles);
+      allFindings.push(...batchFindings);
+    }
+
+    return allFindings;
   }
 }
 
 // async function vulnerable_test(userInput: string) {
 //   await prisma.$queryRawUnsafe(`SELECT * FROM users WHERE name = ${userInput}`);
 //   console.log(process.env.GROQ_API_KEY);
-// }
+//
 
 export const scanner = new ArmorIQScanner();
