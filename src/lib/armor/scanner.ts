@@ -171,7 +171,7 @@ function filterFalsePositives(findings: ScanFinding[]): ScanFinding[] {
       }
     }
 
-    // 2. Filter out mock credentials in seed files
+    // 2. Filter out mock credentials in seed fileslas
     if (lowerFile.includes('seed.ts')) {
       if (safePlaceholders.some(safeWord => lowerSnippet.includes(safeWord))) return false;
       if (lowerSnippet.includes('console.error') || lowerSnippet.includes('console.log')) return false;

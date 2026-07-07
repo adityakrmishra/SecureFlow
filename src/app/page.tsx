@@ -14,10 +14,10 @@ export default function LandingPage() {
        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary glow-primary">
             <Image 
-              src="/logo.jpeg" 
+              src="/logo.png" 
               alt="SecureFlow Logo" 
-              width={28} 
-              height={28} 
+              width={64} 
+              height={64} 
               className="object-contain"
             />
           </div>
@@ -210,12 +210,12 @@ export default function LandingPage() {
       <footer className="mt-auto border-t border-white/5 px-6 py-12 bg-background">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded flex items-center justify-center">
+            <div className="w-6 h-6 rounded flex items-center justify-center bg-primary glow-primary">
               <Image 
-                src="/logo.jpeg" 
+                src="/logo.png" 
                 alt="SecureFlow Logo" 
-                width={28} 
-                height={28} 
+                width={64} 
+                height={64} 
                 className="object-contain"
               />
             </div>
