@@ -104,7 +104,6 @@ export async function POST(req: NextRequest) {
         where: { deliveryId }
       });
       if (existingEvent) {
-        console.log("♻️ Skipping duplicate webhook delivery");
         return NextResponse.json({ message: "Webhook already processed" }, { status: 202 });
       }
 
