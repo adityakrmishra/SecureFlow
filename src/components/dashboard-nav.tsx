@@ -14,9 +14,10 @@ import {
   LogOut,
   Menu,
   X,
-  VenetianMask,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CyberTextReveal } from "@/components/cyber-text-reveal";
+import { CyberAvatarReveal } from "@/components/cyber-avatar-reveal";
 
 // Themed Navigation Items
 const NAV_ITEMS = [
@@ -167,10 +168,8 @@ export function DashboardHeader({
         <div className="text-sm text-muted-foreground flex items-center gap-1">
           <span className="text-white font-medium">User</span>
           <span>/</span>
-          {/* Username — hover brightens text with a smooth colour transition */}
-          <span className="font-mono tracking-wider text-muted-foreground transition-colors duration-300 hover:text-primary cursor-default select-none">
-            {user?.codename ?? "Recruit"}
-          </span>
+          {/* Username — scrambles into real name on hover (see CyberTextReveal) */}
+          <CyberTextReveal codename={user?.codename} realName={user?.name} />
         </div>
       </div>
 
@@ -178,22 +177,8 @@ export function DashboardHeader({
       <div className="flex items-center gap-3 sm:gap-4">
         <ThemeToggle />
 
-        {/* Avatar — hover scales it up slightly and adds a soft red glow ring */}
-        {user?.image ? (
-          <div className="relative w-8 h-8 rounded-full shrink-0 transition-all duration-300 ease-in-out hover:scale-[1.08] hover:shadow-[0_0_0_2px_rgba(229,9,20,0.6),0_0_12px_2px_rgba(229,9,20,0.25)] cursor-default">
-            <Image
-              src={user.image}
-              alt={user.name || "Profile"}
-              fill
-              sizes="32px"
-              className="rounded-full object-cover border border-primary/30"
-            />
-          </div>
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 transition-all duration-300 ease-in-out hover:scale-[1.08] hover:shadow-[0_0_0_2px_rgba(229,9,20,0.6),0_0_12px_2px_rgba(229,9,20,0.25)] cursor-default">
-            <VenetianMask className="w-5 h-5 text-red-500" />
-          </div>
-        )}
+        {/* Avatar — glitch-dissolves between VenetianMask and GitHub avatar (see CyberAvatarReveal) */}
+        <CyberAvatarReveal image={user?.image} name={user?.name} />
 
         {/* Logout Button */}
         <button
