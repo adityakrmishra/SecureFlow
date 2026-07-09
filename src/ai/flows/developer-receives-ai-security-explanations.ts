@@ -15,12 +15,12 @@ export type AISecurityExplanationInput = z.infer<typeof AISecurityExplanationInp
 
 const AISecurityExplanationOutputSchema = z.object({
   explanation: z.string(),
-  remediationSuggestions: z.string(),
+  remediationSuggestions: z.any().transform((val) => typeof val === 'string' ? val : JSON.stringify(val)),
 });
 export type AISecurityExplanationOutput = z.infer<typeof AISecurityExplanationOutputSchema>;
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY || 'dummy-key-for-build',
 });
 
 export async function developerReceivesAISecurityExplanations(
@@ -28,54 +28,50 @@ export async function developerReceivesAISecurityExplanations(
 ): Promise<AISecurityExplanationOutput> {
   const validatedInput = AISecurityExplanationInputSchema.parse(input);
 
-  const prompt = `You are a security expert auditing a Pull Request. Your task is to briefly explain a finding and provide highly actionable remediation steps.
+  const prompt = `You are "The Professor". You are a calculated, highly intelligent, and authoritative security mastermind orchestrating a defense against digital breaches. Your goal is to secure "The Vault" (the codebase) by intercepting compromised Pull Requests.
 
-CRITICAL LENGTH CONSTRAINTS:
-- Explanation: Must be maximum 2 sentences long. State only the direct impact.
-- Remediation: Provide a short bulleted list of changes or a concise, single code block. Do NOT write an introduction, multiple phases, or an essay.
+CRITICAL CONSTRAINTS:
+- Explanation: Must be maximum 2 sentences long. Speak with cold precision. Detail exactly how the breach would occur.
+- Remediation: Provide a short bulleted list of changes or a concise, single code block. Dictate the solution as an absolute command. Do NOT write an introduction or an essay.
 
-Security Finding Details:
-Type: ${validatedInput.findingType}
-Severity: ${validatedInput.severity}
-Description: ${validatedInput.description}
-File Location: ${validatedInput.fileLocation}
-Code Snippet:
+Security Breach Details:
+Threat Class: ${validatedInput.findingType}
+Threat Level: ${validatedInput.severity}
+Reconnaissance: ${validatedInput.description}
+Compromised Sector: ${validatedInput.fileLocation}
+Intercepted Payload:
 """
 ${validatedInput.codeSnippet}
 """
 
-You MUST respond strictly using the following structural tag markers to enclose your answers:
-
-<explanation_block>
-Concise explanation (max 2 sentences)...
-</explanation_block>
-
-<remediation_block>
-Short, bulleted remediation or single compact code snippet here...
-</remediation_block>`;
+You MUST respond strictly with a valid JSON object containing exactly two keys: "explanation" and "remediationSuggestions". Do not include any other text.`;
 
   const chatCompletion = await groq.chat.completions.create({
     messages: [
       { 
         role: 'system', 
-        content: 'You are an elite application security assistant. Keep all outputs ultra-short, concise, and populate the requested blocks.' 
+        content: 'You are "The Professor", an elite security mastermind defending The Vault. Keep all outputs ultra-short, calculated, and output ONLY a valid JSON object containing the keys "explanation" and "remediationSuggestions".' 
       },
       { role: 'user', content: prompt }
     ],
-    // model: 'llama-3.3-70b-versatile',
-    model: 'llama-3.1-8b-instant'
+    model: 'llama-3.1-8b-instant',
+    response_format: { type: 'json_object' }
   });
 
-  const responseText = chatCompletion.choices[0]?.message?.content || '';
-
-  const explanationMatch = responseText.match(/<explanation_block>([\s\S]*?)<\/explanation_block>/);
-  const remediationMatch = responseText.match(/<remediation_block>([\s\S]*?)<\/remediation_block>/);
-
-  const explanation = explanationMatch ? explanationMatch[1].trim() : 'No explanation provided.';
-  const remediationSuggestions = remediationMatch ? remediationMatch[1].trim() : 'No remediation suggestions provided.';
+  const responseText = chatCompletion.choices[0]?.message?.content || '{}';
+  let parsedContent;
+  
+  try {
+    parsedContent = JSON.parse(responseText);
+  } catch (error) {
+    parsedContent = {
+      explanation: 'System error in threat calculation. The Professor is currently offline.',
+      remediationSuggestions: 'Lock down the perimeter manually. Review the payload.'
+    };
+  }
 
   return AISecurityExplanationOutputSchema.parse({
-    explanation,
-    remediationSuggestions
+    explanation: parsedContent.explanation || 'No explanation provided.',
+    remediationSuggestions: parsedContent.remediationSuggestions || 'No remediation suggestions provided.'
   });
 }

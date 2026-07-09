@@ -2,12 +2,21 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-// Fix BigInt serialization issue in Next.js API routes and Server Components.
-// JSON.stringify() cannot serialize BigInt values by default.
-// This polyfill converts all BigInt values to strings during serialization.
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
+// BigInt serialization fix: standard JSON.stringify() does not support BigInt values.
+// Patching BigInt.prototype.toJSON allows objects with BigInt fields (such as Repository/PullRequest githubId)
+// to be serialized safely in API responses.
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+if (!(BigInt.prototype as any).toJSON) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+  };
+}
 
 const prismaClientSingleton = () => {
   // 1. Initialize a connection pool using the standard pg driver
