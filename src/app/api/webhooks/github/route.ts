@@ -448,7 +448,8 @@ export async function POST(req: NextRequest) {
         return {
           ...finding,
           explanation: aiResponse.explanation,
-          remediation: aiResponse.remediationSuggestions
+          remediation: aiResponse.remediationSuggestions,
+          promptInjectionSuspected: aiResponse.promptInjectionSuspected
         };
       }));
 
@@ -490,6 +491,9 @@ export async function POST(req: NextRequest) {
           const badge = f.severity === 'CRITICAL' ? '🔴 CRITICAL' : (f.severity === 'HIGH' ? '🟠 HIGH' : '🟡 MEDIUM');
           
           commentBody += `#### ${badge} | **${f.type}** in \`${f.fileLocation}\`\n`;
+          if (f.promptInjectionSuspected) {
+            commentBody += `⚠️ **AI explanation may be unreliable for this finding — verify manually.** The scanned code may contain content crafted to influence the AI narrative below. The severity badge above comes from the static scanner and is unaffected.\n\n`;
+          }
           commentBody += `> ${f.explanation}\n\n`;
           
           // Use collapsible HTML blocks so remediation details don't drown out the screen real estate
@@ -571,7 +575,8 @@ export async function POST(req: NextRequest) {
                 fileLocation: f.fileLocation,
                 codeSnippet: f.codeSnippet || null,
                 explanation: f.explanation || null,
-                remediation: f.remediation || null
+                remediation: f.remediation || null,
+                promptInjectionSuspected: f.promptInjectionSuspected || false
               }))
             }
           }
