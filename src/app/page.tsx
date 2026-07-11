@@ -25,6 +25,9 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+          </div>
           <Link
             href="/leaderboard"
             className="hidden sm:inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground hover:text-primary transition-colors"
@@ -32,9 +35,6 @@ export default function LandingPage() {
             <Trophy className="w-4 h-4" />
             Leaderboard
           </Link>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-          </div>
           <LoginButton />
           <Link href={process.env.GITHUB_APP_URL!}>
             <Button className="bg-primary text-background hover:bg-primary/90 glow-primary rounded-sm font-bold uppercase tracking-wide">
