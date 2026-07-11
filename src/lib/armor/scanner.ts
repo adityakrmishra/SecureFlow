@@ -7,6 +7,8 @@ export type ScanFinding = {
   description: string;
   fileLocation: string;
   codeSnippet: string;
+  lineStart?: number;
+  lineEnd?: number;
 };
 
 export interface FileChange {
@@ -171,7 +173,7 @@ function filterFalsePositives(findings: ScanFinding[]): ScanFinding[] {
       }
     }
 
-    // 2. Filter out mock credentials in seed fileslas
+    // 2. Filter out mock credentials in seed files
     if (lowerFile.includes('seed.ts')) {
       if (safePlaceholders.some(safeWord => lowerSnippet.includes(safeWord))) return false;
       if (lowerSnippet.includes('console.error') || lowerSnippet.includes('console.log')) return false;
@@ -320,7 +322,9 @@ Format:
       "severity": "CRITICAL | HIGH | MEDIUM | LOW",
       "description": "Detailed explanation.",
       "fileLocation": "The exact path/filename from the <file> tag",
-      "codeSnippet": "The specific problematic line(s)"
+      "codeSnippet": "The specific problematic line(s)",
+      "lineStart": 10,
+      "lineEnd": 12
     }
   ]
 }`;
@@ -378,7 +382,9 @@ CRITICAL RULES:
               severity: validSeverities.includes(upperSeverity) ? (upperSeverity as any) : 'MEDIUM',
               description: String(f.description || 'No description provided.'),
               fileLocation: String(f.fileLocation || 'Unknown file path'),
-              codeSnippet: normalizedSnippet
+              codeSnippet: normalizedSnippet,
+              lineStart: typeof f.lineStart === 'number' ? f.lineStart : undefined,
+              lineEnd: typeof f.lineEnd === 'number' ? f.lineEnd : undefined
             };
           });
 
@@ -418,10 +424,5 @@ CRITICAL RULES:
     return allFindings;
   }
 }
-
-// async function vulnerable_test(userInput: string) {
-//   await prisma.$queryRawUnsafe(`SELECT * FROM users WHERE name = ${userInput}`);
-//   console.log(process.env.GROQ_API_KEY);
-//
 
 export const scanner = new ArmorIQScanner();
