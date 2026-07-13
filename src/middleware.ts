@@ -1,17 +1,17 @@
-import { NextResponse } from "next/server";
-import NextAuth from "next-auth";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { ratelimit } from '@/lib/ratelimit';
+import { getClientIp } from '@/lib/client-ip';
 import authConfig from "./auth.config";
-import { ratelimit } from "@/lib/ratelimit";
+import NextAuth from "next-auth";
 
 const { auth } = NextAuth(authConfig);
 
-export default auth(async (req: any) => {
-  const { nextUrl } = req;
+export async function middleware(request: NextRequest) {
   const token = req.auth;
-
-  // Rate Limiting Logic for /api/og
-  if (nextUrl.pathname.startsWith('/api/og') && ratelimit) {
-    const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  
+  if (request.nextUrl.pathname.startsWith('/api/og') && ratelimit) {
+    const ip = getClientIp(request.headers);
     const { success } = await ratelimit.limit(ip);
     
     if (!success) {
@@ -20,10 +20,10 @@ export default auth(async (req: any) => {
   }
   
   // RBAC Admin Route Guarding
-  if (nextUrl.pathname.startsWith('/admin')) {
+  if (request.nextUrl.pathname.startsWith('/admin')) {
     const roles = (token?.user?.roles as string[]) || [];
     if (!token || !roles.includes("ADMIN")) {
-      return NextResponse.redirect(new URL('/', nextUrl));
+      return NextResponse.redirect(new URL('/', request.nextUrl));
     }
   }
 
