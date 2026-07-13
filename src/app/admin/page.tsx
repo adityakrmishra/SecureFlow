@@ -1,9 +1,10 @@
-import { getAdminMetrics } from "@/lib/actions/admin";
+import { getAdminMetrics, getRecentAuditLogs } from "@/lib/actions/admin";
 import MetricsCard from "@/components/admin/MetricsCard";
 import AuditLogTable from "@/components/admin/AuditLogTable";
 
 export default async function AdminDashboard() {
   const metrics = await getAdminMetrics();
+  const logs = await getRecentAuditLogs();
 
   return (
     <div className="space-y-8">
@@ -20,7 +21,7 @@ export default async function AdminDashboard() {
 
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-4">Recent Audit Activity</h2>
-        <AuditLogTable />
+        <AuditLogTable logs={logs} />
       </div>
     </div>
   );

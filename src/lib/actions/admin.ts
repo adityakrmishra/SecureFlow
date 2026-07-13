@@ -18,3 +18,15 @@ export async function getAdminMetrics() {
 
   return { totalUsers, totalPrs, totalAudits };
 }
+export async function getRecentAuditLogs() {
+  const session = await auth();
+
+  if (!session?.user || !session.user.roles?.includes("ADMIN")) {
+    throw new Error("Unauthorized");
+  }
+
+  return await prisma.auditLog.findMany({
+    orderBy: { timestamp: 'desc' },
+    take: 100
+  });
+}
