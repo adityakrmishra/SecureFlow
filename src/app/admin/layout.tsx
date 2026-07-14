@@ -1,27 +1,29 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import Link from "next/link";
+import { AdminSidebarNav, AdminMobileNav } from "@/components/admin/AdminNav";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await auth();
 
+  // Hard gate: only ADMINs may render anything under /admin.
   if (!session?.user || !session.user.roles?.includes("ADMIN")) {
     redirect("/");
   }
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
-      <aside className="w-64 border-r border-zinc-800 p-6 flex flex-col gap-4 bg-black">
-        <h2 className="text-xl font-bold tracking-tighter">Admin Panel</h2>
-        <nav className="flex flex-col gap-2 mt-8">
-          <Link href="/admin" className="text-zinc-400 hover:text-white transition-colors">Dashboard</Link>
-          <Link href="/admin/queue" className="text-zinc-400 hover:text-white transition-colors">Queue Monitor</Link>
-          <Link href="/admin/users" className="text-zinc-400 hover:text-white transition-colors">Users</Link>
-          <Link href="/admin/logs" className="text-zinc-400 hover:text-white transition-colors">Audit Logs</Link>
-        </nav>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-64 border-r border-zinc-800 px-4 py-6 flex-col gap-6 bg-black sticky top-0 h-screen">
+        <AdminSidebarNav />
       </aside>
-      <main className="flex-1 p-8 overflow-y-auto">
+
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-black border-b border-zinc-800 flex items-center px-4">
+        <AdminMobileNav />
+      </div>
+
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto pt-20 lg:pt-8">
         {children}
       </main>
     </div>
